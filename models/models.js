@@ -1,4 +1,5 @@
 const User = require('./Users.js');
+const { getTokenForUser } = require('../services/jwtauth');
 
 const newUser = (req, res) => {
   const { username, password } = req.body;
@@ -28,22 +29,38 @@ const getUsers =(req, res) => {
 
 const login = (req, res) => {
   const { username, password } = req.body;
-  User.findOne({ username })
-    .then(user => {
-      if (user) {
-      user.checkPassword(password)
-        .then(res => {
-          if(res) {
-            res.status(200).json(user);
-          }
-          else res.status(422).json({error: 'Wrong Password or Username'})
-        })
-      } else res.status(422).json({error: 'Wrong Password or Username'})
-    })
-    .catch(err => {
-      res.status(500).json({ error: err });
-    })
+  User.findOne({ username }, (err, user) => {
+    if (err) {
+      res.status(500).json({ error: 'Invalid Credentials' });
+      return;
+    }
+    if (user === null) {
+      res.status(422).json({ error: 'User not found' });
+      return;
+    }
+    user.checkPassword(password, (inValid, isValid) => {
+      if (inValid !== null) {
+        res.status(422).json({ error: 'No Match!' });
+        return;
+      }
+      if (isValid) {
+        const token = getTokenForUser({ username: user.username });
+        res.json({ token });
+      }
+    });
+  });
 };
+      //     .then(res => {
+      //       if(res) {
+      //         res.status(200).json({ success: res });
+      //       }
+      //       else res.status(422).json({error: 'Wrong Password or Username'})
+      //     })
+      //   } else res.status(422).json({error: 'Wrong Password or Username'})
+      // })
+      // .catch(err => {
+      //   res.status(500).json({ error: 'catch err' });
+      // })
 
 module.exports = {
   newUser,
