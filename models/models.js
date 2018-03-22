@@ -27,40 +27,51 @@ const getUsers =(req, res) => {
     })
 };
 
+// const login = (req, res) => {
+//   const { username, password } = req.body;
+//   User.findOne({ username }, (err, user) => {
+//     if (err) {
+//       res.status(500).json({ error: 'Invalid Credentials' });
+//       return;
+//     }
+//     if (user === null) {
+//       res.status(422).json({ error: 'User not found' });
+//       return;
+//     }
+//     user.checkPassword(password, (inValid, isValid) => {
+//       if (inValid !== null) {
+//         res.status(422).json({ error: 'No Match!' });
+//         return;
+//       }
+//       if (isValid) {
+//         const token = getTokenForUser({ username: user.username });
+//         res.json({ token });
+//       }
+//     });
+//   });
+// };
+
+// Promises Login
 const login = (req, res) => {
   const { username, password } = req.body;
-  User.findOne({ username }, (err, user) => {
-    if (err) {
-      res.status(500).json({ error: 'Invalid Credentials' });
-      return;
-    }
-    if (user === null) {
-      res.status(422).json({ error: 'User not found' });
-      return;
-    }
-    user.checkPassword(password, (inValid, isValid) => {
-      if (inValid !== null) {
-        res.status(422).json({ error: 'No Match!' });
-        return;
-      }
-      if (isValid) {
-        const token = getTokenForUser({ username: user.username });
-        res.json({ token });
-      }
-    });
-  });
+  User.findOne({ username })
+    .then(user => {
+      if (user) {
+        user.checkPassword(user, password)
+        .then(isMatch => {
+          if(isMatch) {
+            const token = getTokenForUser({ username: user})
+            res.status(200).json(user);
+          }
+          else res.status(422).json({error: 'Wrong Password or Username'})
+        })
+      } else res.status(422).json({error: 'Wrong Password or Username'})
+    })
+    .catch(err => {
+      res.status(500).json({ error: err });
+    })
 };
-      //     .then(res => {
-      //       if(res) {
-      //         res.status(200).json({ success: res });
-      //       }
-      //       else res.status(422).json({error: 'Wrong Password or Username'})
-      //     })
-      //   } else res.status(422).json({error: 'Wrong Password or Username'})
-      // })
-      // .catch(err => {
-      //   res.status(500).json({ error: 'catch err' });
-      // })
+
 
 module.exports = {
   newUser,
