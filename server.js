@@ -1,6 +1,6 @@
-const server = require('express');
+const express = require('express');
 const cors = require('cors');
-const PORT = require('./config.js')
+const { port } = require('./config.js')
 const mongoose = require('mongoose');
 const routes = require('./controllers/routes.js');
 mongoose.connect('mongodb://localhost/fullstack');
@@ -10,11 +10,12 @@ const corsOptions = {
   credentials: true
 };
 
-server.use(cors(corsOptions));
+const server = express();
 server.use(express.json());
+server.use(cors(corsOptions));
 
 routes(server);
 
-server.listen(PORT, (req, res) => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(port, (req, res) => {
+  console.log(`Server running on port ${port}`);
 });
