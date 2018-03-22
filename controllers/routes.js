@@ -1,5 +1,9 @@
-const express = require('express');
-const router = express.Router();
+const { newUser, getUsers, login } = require('../models/models.js');
 
-router.use
-
+module.exports = server => {
+  server.post('/api/login', login);
+  server
+    .route('/api/users')
+    .post(newUser)
+    .get(getUsers);
+};
